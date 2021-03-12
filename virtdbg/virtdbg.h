@@ -3,6 +3,48 @@
 
 #include <stdint.h>
 
+typedef struct initial_guest_state {
+    uint64_t apic_id;
+    uint64_t r15;
+    uint64_t r14;
+    uint64_t r13;
+    uint64_t r12;
+    uint64_t r11;
+    uint64_t r10;
+    uint64_t r9;
+    uint64_t r8;
+    uint64_t rbp;
+    uint64_t rdi;
+    uint64_t rsi;
+    uint64_t rdx;
+    uint64_t rcx;
+    uint64_t rbx;
+    uint64_t rax;
+    uint64_t rip;
+    uint64_t rsp;
+    uint64_t rflags;
+    uint64_t efer;
+    uint64_t cr0;
+    uint64_t cr4;
+    uint64_t cr3;
+    uint64_t ss;
+    uint64_t ds;
+    uint64_t es;
+    uint64_t fs;
+    uint64_t gs;
+    uint64_t cs;
+} initial_guest_state_t;
+
+/**
+ * This is passed to the hypervisor upon initialization, it does not have
+ * to be in the hypervisor stolen memory, since once we enter the guest we
+ * assume this will be overridden.
+ *
+ * on the other hand we do need the page tables and initial stack to be inside
+ * the stolen memory since we assume it will not be changed once we enter the guest.
+ * of course if the loader makes sure it won't be overridden then no problem should come
+ * from not putting it in the stolen memory range.
+ */
 typedef struct virtdbg_args {
     // we assume that the base of the binary is at the
     // base of the stolen memory, and that there is more
@@ -20,9 +62,11 @@ typedef struct virtdbg_args {
     // dynamic memory it may need
     uintptr_t stolen_memory_end;
 
-    // the return address of the loader, once vmx is initialized this is
-    // where the hypervisor will load everything to
-    uintptr_t return_address;
+    // the initial state of the guest that the virtdbg should create, this
+    // should have a state for every initialized cpu, if the state is not
+    // present virtdbg will assume that core has not been activated yet
+    size_t initial_guest_state_count;
+    initial_guest_state_t* initial_guest_state;
 } virtdbg_args_t;
 
 #endif //__VIRTDBG_VIRTDBG_H__
