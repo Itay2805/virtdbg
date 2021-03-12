@@ -9,6 +9,7 @@ typedef struct virtdbg_args {
     // space at the end of the binary itself that can be
     // used for dynamic memory allocation
     uintptr_t stolen_memory_base;
+    uintptr_t virtdbg_end;
     uintptr_t stolen_memory_end;
 
     // the return address of the loader

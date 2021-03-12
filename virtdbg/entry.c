@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <util/trace.h>
 #include <arch/cpu.h>
+#include <mm/mm.h>
 #include "virtdbg.h"
 #include "elf.h"
 
@@ -68,6 +69,10 @@ void _start(virtdbg_args_t* args) {
     // we ready to roll!
     TRACE("staring up virtdbg");
     TRACE("\tStolen memory: 0x%p-0x%p", args->stolen_memory_base, args->stolen_memory_end);
+
+    // setup the pmm
+    TRACE("Initializing PMM");
+    init_pmm(args->virtdbg_end, args->stolen_memory_end - args->virtdbg_end);
 
     cpu_sleep();
 }
