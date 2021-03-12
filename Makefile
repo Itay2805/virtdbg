@@ -76,3 +76,57 @@ $(BUILD_DIR)/%.asm.o: %.asm
 
 clean:
 	rm -rf out
+
+########################################################################################################################
+# Setup image
+########################################################################################################################
+
+QEMU_ARGS += -m 4G -smp 4
+QEMU_ARGS += -machine q35
+QEMU_ARGS += -serial stdio
+QEMU_ARGS += -monitor tcp:localhost:1337,nowait
+QEMU_ARGS += --no-shutdown
+QEMU_ARGS += --no-reboot
+QEMU_ARGS += -cpu Nehalem
+
+ifeq ($(shell uname -r | sed -n 's/.*\( *Microsoft *\).*/\1/p'), Microsoft)
+	QEMU := qemu-system-x86_64.exe
+	ifeq ($(QEMU_ACCEL), 1)
+		QEMU_ARGS += --accel whpx
+	endif
+else
+	QEMU := qemu-system-x86_64
+	ifeq ($(QEMU_ACCEL), 1)
+		QEMU_ARGS += --enable-kvm
+	endif
+endif
+
+#
+# A target to start the kernel in qemu
+#
+qemu: $(BIN_DIR)/image.hdd
+	$(QEMU) -hdd $^ $(QEMU_ARGS)
+
+#
+# A target to build a bootable image
+#
+image: $(BIN_DIR)/image.hdd
+
+#
+# Builds the image itself
+#
+$(BIN_DIR)/image.hdd: $(BIN_DIR)/virtdbg.bin
+	@mkdir -p $(@D)
+	@echo "Creating disk"
+	@rm -rf $@
+	dd if=/dev/zero bs=1M count=0 seek=64 of=$@
+	@echo "Creating echfs partition"
+	parted -s $@ mklabel msdos
+	parted -s $@ mkpart primary 1 100%
+	echfs-utils -m -p0 $@ quick-format 32768
+	@echo "Importing files"
+	echfs-utils -m -p0 $@ import $(BIN_DIR)/virtdbg.bin virtdbg.bin
+	echfs-utils -m -p0 $@ import artifacts/lyre.elf lyre.elf
+	echfs-utils -m -p0 $@ import artifacts/limine.cfg limine.cfg
+	@echo "Installing limine"
+	artifacts/limine-install artifacts/limine.bin $@

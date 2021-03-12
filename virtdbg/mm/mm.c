@@ -78,7 +78,7 @@ void init_pmm(uintptr_t base, size_t size) {
 }
 
 void* palloc(size_t size) {
-    acquire_lock(&m_pmm_lock);
+    lock(&m_pmm_lock);
 
     int original_order = MAX(LOG2(size), MIN_ORDER);
     size_t want_size = 1ull << original_order;
@@ -104,23 +104,23 @@ void* palloc(size_t size) {
             }
 
             // return the allocated address
-            release_lock(&m_pmm_lock);
+            unlock(&m_pmm_lock);
             return address;
         }
     }
 
-    release_lock(&m_pmm_lock);
+    unlock(&m_pmm_lock);
     return NULL;
 }
 
 void pfree(void* ptr, size_t size) {
-    acquire_lock(&m_pmm_lock);
+    lock(&m_pmm_lock);
 
     // get the order and add it
     int order = MAX(LOG2(size), MIN_ORDER);
     buddy_add_free_item(ptr, order, false);
 
-    release_lock(&m_pmm_lock);
+    unlock(&m_pmm_lock);
 }
 
 void* pallocz(size_t size) {

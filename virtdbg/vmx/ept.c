@@ -50,7 +50,7 @@ cleanup:
 err_t ept_map(uintptr_t address) {
     err_t err = NO_ERROR;
 
-    acquire_lock(&m_ept_lock);
+    lock(&m_ept_lock);
 
     ept_entry_t* curr = m_root_pa;
     for (size_t i = EPT_LEVELS; i >= 0; i--) {
@@ -69,10 +69,10 @@ err_t ept_map(uintptr_t address) {
         }
 
         // get the next level
-        curr = (ept_entry_t*)(curr[index].frame << 12);
+        curr = (ept_entry_t*)((uintptr_t)curr[index].frame << 12);
     }
 
 cleanup:
-    release_lock(&m_ept_lock);
+    unlock(&m_ept_lock);
     return err;
 }
