@@ -2,6 +2,8 @@
 #include <util/defs.h>
 #include <util/except.h>
 #include <util/string.h>
+#include <sync/lock.h>
+#include <stdint.h>
 #include "mm.h"
 
 /**
@@ -15,7 +17,7 @@
 
 static void* m_base = NULL;
 static void** m_free_list = NULL;
-
+static lock_t m_pmm_lock = INIT_LOCK();
 
 static bool check_buddies(void* a, void* b, size_t size) {
     uintptr_t lower = MIN(a, b) - m_base;
@@ -76,6 +78,8 @@ void init_pmm(uintptr_t base, size_t size) {
 }
 
 void* palloc(size_t size) {
+    acquire_lock(&m_pmm_lock);
+
     int original_order = MAX(LOG2(size), MIN_ORDER);
     size_t want_size = 1ull << original_order;
 
@@ -100,17 +104,23 @@ void* palloc(size_t size) {
             }
 
             // return the allocated address
+            release_lock(&m_pmm_lock);
             return address;
         }
     }
 
+    release_lock(&m_pmm_lock);
     return NULL;
 }
 
 void pfree(void* ptr, size_t size) {
+    acquire_lock(&m_pmm_lock);
+
     // get the order and add it
     int order = MAX(LOG2(size), MIN_ORDER);
     buddy_add_free_item(ptr, order, false);
+
+    release_lock(&m_pmm_lock);
 }
 
 void* pallocz(size_t size) {

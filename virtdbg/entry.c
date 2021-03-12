@@ -3,6 +3,7 @@
 #include <util/trace.h>
 #include <arch/cpu.h>
 #include <mm/mm.h>
+#include <vmx/ept.h>
 #include "virtdbg.h"
 #include "elf.h"
 
@@ -61,6 +62,8 @@ static void relocate(uintptr_t base) {
 
 __attribute__((section(".init"), used))
 void _start(virtdbg_args_t* args) {
+    err_t err = NO_ERROR;
+
     // first of all do the relocation so we can
     // start doing everything else
     relocate(args->stolen_memory_base);
@@ -74,6 +77,11 @@ void _start(virtdbg_args_t* args) {
     TRACE("Initializing PMM");
     init_pmm(args->virtdbg_end, args->stolen_memory_end - args->virtdbg_end);
 
+    // setup the ept
+    TRACE("Initializing EPT");
+    CHECK_AND_RETHROW(init_ept());
+
+cleanup:
     cpu_sleep();
 }
 
