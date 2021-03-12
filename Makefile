@@ -115,7 +115,10 @@ image: $(BIN_DIR)/image.hdd
 #
 # Builds the image itself
 #
-$(BIN_DIR)/image.hdd: $(BIN_DIR)/virtdbg.bin
+$(BIN_DIR)/image.hdd: \
+		$(BIN_DIR)/virtdbg.bin \
+		artifacts/limine.cfg \
+		artifacts/lyre.elf
 	@mkdir -p $(@D)
 	@echo "Creating disk"
 	@rm -rf $@
