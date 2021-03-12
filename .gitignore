@@ -1,0 +1,7 @@
+CMakeLists.txt
+out
+cmake-build-debug
+.idea
+
+# Everything in the toolchain dir
+toolchain/*
