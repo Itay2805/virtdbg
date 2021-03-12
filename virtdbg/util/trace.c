@@ -306,7 +306,7 @@ static void serial_output_cb(char c, void* ctx) {
     uint8_t data;
     do {
         data = io_read_8(LSR);
-    } while(data & TXRDY);
+    } while(!(data & TXRDY));
     io_write_8(SERIAL_BASE, c);
 }
 
