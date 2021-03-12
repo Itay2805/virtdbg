@@ -48,7 +48,7 @@ static void relocate(uintptr_t base) {
             } break;
 
             default: {
-//                WARN("unknown relocation %d", ELF64_R_TYPE(rel->info));
+                WARN("unknown relocation %d", ELF64_R_TYPE(rel->info));
             } break;
         }
 
@@ -66,8 +66,8 @@ void _start(virtdbg_args_t* args) {
     memory_barrier();
 
     // we ready to roll!
-//    TRACE("staring up virtdbg");
-//    TRACE("\tStolen memory: 0x%p-0x%p", args->stolen_memory_base, args->stolen_memory_end);
+    TRACE("staring up virtdbg");
+    TRACE("\tStolen memory: 0x%p-0x%p", args->stolen_memory_base, args->stolen_memory_end);
 
     cpu_sleep();
 }
