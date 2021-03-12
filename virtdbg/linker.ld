@@ -16,10 +16,13 @@ SECTIONS {
     }
 
     . = ALIGN(4096);
-    .data :
-    {
+    .dynamic : {
         _DYNAMIC = .;
         *(.dynamic)
+    }
+
+    . = ALIGN(4096);
+    .data : {
         *(.rodata*)
         *(.data*)
         *(.bss)

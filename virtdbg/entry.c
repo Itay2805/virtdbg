@@ -7,21 +7,26 @@
 
 static void relocate(uintptr_t base) {
     elf64_rela_t* rel = 0;
-    size_t relsz = 0, relent = 0;
+    size_t relsz = 0;
+    size_t relent = 0;
+
+    // get the dynamic symbol nicely
+    elf64_dyn_t* dynamic = NULL;
+    asm ("lea _DYNAMIC(%%rip), %0" : "=r"(dynamic));
 
     // search for relocation information
-    for (int i = 0; _DYNAMIC[i].tag != DT_NULL; i++) {
-        switch (_DYNAMIC[i].tag) {
+    for (int i = 0; dynamic[i].tag != DT_NULL; i++) {
+        switch (dynamic[i].tag) {
             case DT_RELA: {
-                rel = (elf64_rela_t*)_DYNAMIC[i].ptr;
+                rel = (elf64_rela_t*)dynamic[i].ptr;
             } break;
 
             case DT_RELASZ: {
-                relsz = _DYNAMIC[i].val;
+                relsz = dynamic[i].val;
             } break;
 
             case DT_RELAENT: {
-                relent = _DYNAMIC[i].val;
+                relent = dynamic[i].val;
             } break;
 
             default: break;
@@ -43,7 +48,7 @@ static void relocate(uintptr_t base) {
             } break;
 
             default: {
-                WARN("unknown relocation %d", ELF64_R_TYPE(rel->info));
+//                WARN("unknown relocation %d", ELF64_R_TYPE(rel->info));
             } break;
         }
 
@@ -61,8 +66,8 @@ void _start(virtdbg_args_t* args) {
     memory_barrier();
 
     // we ready to roll!
-    TRACE("staring up virtdbg");
-    TRACE("\tStolen memory: 0x%p-0x%p", args->stolen_memory_base, args->stolen_memory_end);
+//    TRACE("staring up virtdbg");
+//    TRACE("\tStolen memory: 0x%p-0x%p", args->stolen_memory_base, args->stolen_memory_end);
 
     cpu_sleep();
 }

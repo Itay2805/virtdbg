@@ -2,15 +2,6 @@
 # Build config
 ########################################################################################################################
 
-# Should debug be enabled
-DEBUG 		?= 1
-
-# Should qemu debugger be enabled
-DEBUGGER 	?= 0
-
-# Qemu acceleration
-QEMU_ACCEL	?= 0
-
 ########################################################################################################################
 # Build constants
 ########################################################################################################################
@@ -22,8 +13,8 @@ OBJCOPY		:= ./toolchain/bin/x86_64-elf-objcopy
 CFLAGS 		:= -Wall -Werror -Wno-unused-label
 CFLAGS 		+= -mno-sse -mno-sse2 -mno-mmx -mno-80387 -m64
 CFLAGS 		+= -mno-red-zone -fno-builtin -march=nehalem
-CFLAGS 		+= -fstack-protector -ffreestanding -fpic
-CFLAGS 		+= -O2 -flto -g
+CFLAGS 		+= -ffreestanding -fpic
+CFLAGS 		+= -O2 -flto -ffat-lto-objects -g
 CFLAGS 		+= -Ivirtdbg
 
 CFLAGS 		+= -nostdlib
@@ -34,16 +25,8 @@ SRCS		:= $(shell find virtdbg -name '*.c')
 
 OUT_DIR 	:= out
 
-ifeq ($(DEBUG), 1)
-	CFLAGS += -D__VIRTDBG_DEBUG__
-	CFLAGS += -fsanitize=undefined -fno-strict-aliasing -Wno-lto-type-mismatch
-
-	BIN_DIR := $(OUT_DIR)/bin/DEBUG
-	BUILD_DIR := $(OUT_DIR)/build/DEBUG
-else
-	BIN_DIR := $(OUT_DIR)/bin/RELEASE
-	BUILD_DIR := $(OUT_DIR)/build/RELEASE
-endif
+BIN_DIR := $(OUT_DIR)/bin
+BUILD_DIR := $(OUT_DIR)/build
 
 ########################################################################################################################
 # Phony
