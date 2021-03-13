@@ -15,8 +15,19 @@
 
 #define NEXT(ptr) *((void**)(ptr))
 
+/**
+ * The base of the memory allocation
+ */
 static void* m_base = NULL;
-static void** m_free_list = NULL;
+
+/**
+ * The free list of free blocks
+ */
+static void* m_free_list[MAX_ORDER - MIN_ORDER] = { 0 };
+
+/**
+ * The PMM lock, to protect against multi-core allocations
+ */
 static lock_t m_pmm_lock = INIT_LOCK();
 
 static bool check_buddies(void* a, void* b, size_t size) {
