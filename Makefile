@@ -6,20 +6,20 @@
 # Build constants
 ########################################################################################################################
 
-CC 			:= ./toolchain/bin/x86_64-elf-gcc
-LD			:= ./toolchain/bin/x86_64-elf-gcc
-OBJCOPY		:= ./toolchain/bin/x86_64-elf-objcopy
+CC 			:= cc
+LD			:= cc
+OBJCOPY		:= objcopy
 
 CFLAGS 		:= -Wall -Werror -Wno-unused-label
 CFLAGS 		+= -mno-sse -mno-sse2 -mno-mmx -mno-80387 -m64
 CFLAGS 		+= -mno-red-zone -fno-builtin -march=nehalem
-CFLAGS 		+= -ffreestanding -fpic
+CFLAGS 		+= -ffreestanding -fno-asynchronous-unwind-tables
 CFLAGS 		+= -O2 -flto -ffat-lto-objects -g
+CFLAGS 		+= -fpic -fpie -Tvirtdbg/linker.ld
 CFLAGS 		+= -Ivirtdbg
 
-CFLAGS 		+= -nostdlib
+CFLAGS 		+= -nostdlib -nodefaultlibs -nostartfiles
 CFLAGS 		+= -z max-page-size=0x1000
-CFLAGS  	+= -Tvirtdbg/linker.ld
 
 SRCS		:= $(shell find virtdbg -name '*.c')
 
@@ -39,13 +39,6 @@ default: all
 all: $(BIN_DIR)/virtdbg.bin
 
 ########################################################################################################################
-# Toolchain
-########################################################################################################################
-
-toolchain:
-	scripts/make_toolchain.sh "`realpath ./toolchain`" -j`nproc`
-
-########################################################################################################################
 # Targets
 ########################################################################################################################
 
@@ -57,7 +50,11 @@ BINS ?=
 $(BIN_DIR)/virtdbg.bin: $(BUILD_DIR)/virtdbg.elf
 	@echo OBJCOPY $@
 	@mkdir -p $(@D)
-	@$(OBJCOPY) -O binary -S -j .init -j .text -j .data $^ $@
+	@$(OBJCOPY) -O binary -S \
+		-j .init -j .text -j .data -j .bss  \
+		-j .dynamic -j .rela* \
+		--set-section-flags .bss=alloc,load,contents \
+		$^ $@
 
 $(BUILD_DIR)/virtdbg.elf: $(BINS) $(OBJS)
 	@echo LD $@

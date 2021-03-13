@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+typedef struct descriptor {
+    uint16_t size;
+    uint64_t address;
+} __attribute__((packed)) descriptor_t;
+
 typedef struct initial_guest_state {
     uint64_t apic_id;
     uint64_t r15;
@@ -33,7 +38,9 @@ typedef struct initial_guest_state {
     uint64_t fs;
     uint64_t gs;
     uint64_t cs;
-} initial_guest_state_t;
+    descriptor_t gdt;
+    descriptor_t idt;
+} __attribute__((packed)) initial_guest_state_t;
 
 /**
  * This is passed to the hypervisor upon initialization, it does not have
@@ -50,23 +57,23 @@ typedef struct virtdbg_args {
     // base of the stolen memory, and that there is more
     // space at the end of the binary itself that can be
     // used for dynamic memory allocation
-    uintptr_t stolen_memory_base;
+    uint64_t stolen_memory_base;
 
     // this should point to the area after the virtdbg binary
     // AND after the page tables and stack that the loader
     // allocated to the hypervisor
-    uintptr_t virtdbg_end;
+    uint64_t virtdbg_end;
 
     // this is the end of the stolen memory, anything between the prev
     // variable to this can be used by the hypervisor for whatever
     // dynamic memory it may need
-    uintptr_t stolen_memory_end;
+    uint64_t stolen_memory_end;
 
     // the initial state of the guest that the virtdbg should create, this
     // should have a state for every initialized cpu, if the state is not
     // present virtdbg will assume that core has not been activated yet
-    size_t initial_guest_state_count;
+    uint8_t initial_guest_state_count;
     initial_guest_state_t* initial_guest_state;
-} virtdbg_args_t;
+} __attribute__((packed)) virtdbg_args_t;
 
 #endif //__VIRTDBG_VIRTDBG_H__

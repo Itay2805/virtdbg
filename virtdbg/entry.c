@@ -2,43 +2,18 @@
 #include <stdint.h>
 #include <util/trace.h>
 #include <arch/cpu.h>
-#include <mm/mm.h>
+#include <mm/pmm.h>
 #include <vmx/ept.h>
+#include <arch/gdt.h>
 #include "virtdbg.h"
 #include "elf.h"
 
+extern elf64_rela_t _RELOCATIONS[];
+extern uint64_t _RELOCATIONS_SIZE;
+
 static void relocate(uintptr_t base) {
-    elf64_rela_t* rel = 0;
-    size_t relsz = 0;
-    size_t relent = 0;
-
-    // get the dynamic symbol nicely
-    elf64_dyn_t* dynamic = NULL;
-    asm ("lea _DYNAMIC(%%rip), %0" : "=r"(dynamic));
-
-    // search for relocation information
-    for (int i = 0; dynamic[i].tag != DT_NULL; i++) {
-        switch (dynamic[i].tag) {
-            case DT_RELA: {
-                rel = (elf64_rela_t*)dynamic[i].ptr;
-            } break;
-
-            case DT_RELASZ: {
-                relsz = dynamic[i].val;
-            } break;
-
-            case DT_RELAENT: {
-                relent = dynamic[i].val;
-            } break;
-
-            default: break;
-        }
-    }
-
-    if (rel == NULL && relsz == 0 && relent == 0) {
-        // no relocations to do
-        return;
-    }
+    elf64_rela_t* rel = _RELOCATIONS;
+    size_t relsz = _RELOCATIONS_SIZE;
 
     // do the relocations
     while (relsz > 0) {
@@ -55,8 +30,8 @@ static void relocate(uintptr_t base) {
         }
 
         // next entry
-        rel = (elf64_rela_t*)((uintptr_t) rel + relent);
-        relsz -= relent;
+        rel++;
+        relsz -= sizeof(elf64_rela_t);
     }
 }
 
@@ -73,15 +48,19 @@ void _start(virtdbg_args_t* args) {
     TRACE("staring up virtdbg");
     TRACE("\tStolen memory: 0x%p-0x%p", args->stolen_memory_base, args->stolen_memory_end);
 
-    // setup the pmm
-    TRACE("Initializing PMM");
+    //
+    // do initial setup of the hypervisor environment
+    //
+    init_gdt();
     init_pmm(args->virtdbg_end, args->stolen_memory_end - args->virtdbg_end);
 
-    // setup the ept
-    TRACE("Initializing EPT");
+    //
+    // Do the hypervisor setup
+    //
     CHECK_AND_RETHROW(init_ept());
 
 cleanup:
+    TRACE("We done for now");
     cpu_sleep();
 }
 

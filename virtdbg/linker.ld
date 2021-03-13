@@ -1,34 +1,34 @@
-OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
-OUTPUT_ARCH(i386:x86-64)
 ENTRY(_start)
 
-SECTIONS {
-    . = 0;
+PHDRS {
+  none   PT_NULL FLAGS(0);
+  text   PT_LOAD FLAGS(0);
+}
+
+SECTIONS
+{
+    . = 0x0;
 
     .init : {
         *(.init)
         *(.init.*)
-    }
+    }:text
 
     .text : {
         *(.text)
         *(.text.*)
-    }
+    }:text
 
-    . = ALIGN(4096);
-    .dynamic : {
-        _DYNAMIC = .;
-        *(.dynamic)
-
-        /* just in case there is no dynamic section add a dummy dynamic entry */
-        QUAD(0x0)
-        QUAD(0x0)
-    }
-
-    . = ALIGN(4096);
     .data : {
+        _RELOCATIONS = .;
+        *(.rela)
+        *(.rela.*)
+        *(.rela*)
+        _RELOCATIONS_SIZE = .;
+        QUAD(. - _RELOCATIONS);
+        *(.got)
         *(.rodata*)
         *(.data*)
         *(.bss)
-    }
+    }:text
 }

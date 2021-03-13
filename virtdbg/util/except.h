@@ -34,6 +34,11 @@ typedef enum err {
      * The function ran out of resources to continue
      */
     ERROR_OUT_OF_RESOURCES,
+
+    /**
+     * Hardware support for some feature wasn't found
+     */
+    ERROR_UNSUPPORTED,
 } err_t;
 
 /**

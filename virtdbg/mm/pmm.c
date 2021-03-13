@@ -4,7 +4,7 @@
 #include <util/string.h>
 #include <sync/lock.h>
 #include <stdint.h>
-#include "mm.h"
+#include "pmm.h"
 
 /**
  * The min order needs to fit a single pointer
@@ -60,7 +60,15 @@ static void buddy_add_free_item(void* address, size_t order, bool new) {
 }
 
 void init_pmm(uintptr_t base, size_t size) {
-    m_base = (void*)ALIGN_UP(base, 4096);
+    // align everything nicely
+    uintptr_t aligned_base = ALIGN_UP(base, 4096);
+    size = (base + size) - aligned_base;
+    base = aligned_base;
+    m_base = (void*)base;
+
+    TRACE("Initializing PMM");
+    TRACE("\tbase: 0x%p", m_base);
+    TRACE("\tsize: %S", size);
 
     // as long as the chunk is big enough to fit
     while (size > (1ull << MIN_ORDER)) {

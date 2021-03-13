@@ -244,6 +244,7 @@ size_t kvcprintf(printf_callback_t cb, void* ctx, const char* fmt, va_list ap) {
                     case ERROR_CHECK_FAILED: s = "ERROR_CHECK_FAILED"; break;
                     case ERROR_NOT_FOUND: s = "ERROR_NOT_FOUND"; break;
                     case ERROR_OUT_OF_RESOURCES: s = "ERROR_OUT_OF_RESOURCES"; break;
+                    case ERROR_UNSUPPORTED: s = "ERROR_UNSUPPORTED"; break;
                     default: s = num_fmt(num_buf, err, 0, 0, ' ', false, false, -1); break;
                 }
                 while (*s) {

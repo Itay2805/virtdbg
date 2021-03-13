@@ -1,5 +1,5 @@
 #include <sync/lock.h>
-#include <mm/mm.h>
+#include <mm/pmm.h>
 #include "ept.h"
 
 typedef struct ept_entry {
@@ -38,6 +38,8 @@ static ept_entry_t* m_root_pa;
 
 err_t init_ept() {
     err_t err = NO_ERROR;
+
+    TRACE("Initializing EPT");
 
     // allocate the top level page
     m_root_pa = pallocz(4096);
