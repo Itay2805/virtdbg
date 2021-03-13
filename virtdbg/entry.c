@@ -48,6 +48,9 @@ void _start(virtdbg_args_t* args) {
     TRACE("staring up virtdbg");
     TRACE("\tStolen memory: 0x%p-0x%p", args->stolen_memory_base, args->stolen_memory_end);
 
+    CHECK(args->virtdbg_end > args->stolen_memory_base, "Inavlid virtdbg_end");
+    CHECK(args->stolen_memory_end > args->virtdbg_end, "Inavlid stolen_memory_end");
+
     //
     // do initial setup of the hypervisor environment
     //
