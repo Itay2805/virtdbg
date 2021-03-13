@@ -262,6 +262,7 @@ static void kernel_exception_handler(exception_context_t* ctx) {
 
     // stop
     UNLOCKED_ERROR("Halting :(");
+    UNLOCKED_ERROR("");
     while(1) cpu_sleep();
 }
 
