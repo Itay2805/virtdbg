@@ -28,7 +28,7 @@ static void* m_free_list[MAX_ORDER - MIN_ORDER] = { 0 };
 /**
  * The PMM lock, to protect against multi-core allocations
  */
-static lock_t m_pmm_lock = INIT_LOCK();
+static lock_t m_pmm_lock = INIT_IRQ_LOCK();
 
 static bool check_buddies(void* a, void* b, size_t size) {
     uintptr_t lower = MIN(a, b) - m_base;

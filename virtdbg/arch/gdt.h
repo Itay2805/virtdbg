@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define GDT_KERNEL_CODE offsetof(gdt_entries_t, code)
-#define GDT_KERNEL_DATA offsetof(gdt_entries_t, data)
+#define GDT_CODE offsetof(gdt_entries_t, code)
+#define GDT_DATA offsetof(gdt_entries_t, data)
 
 typedef struct gdt64_entry {
     uint16_t limit;

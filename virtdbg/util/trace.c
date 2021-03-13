@@ -6,6 +6,8 @@
 #include "trace.h"
 #include "except.h"
 
+lock_t g_trace_lock = INIT_IRQ_LOCK();
+
 //----------------------------------------------------------------------------------------------------------------------
 
 const char* num_fmt(char* buf, uint64_t i, int base, int padding, char pad_with, int handle_signed, int upper, int len) {

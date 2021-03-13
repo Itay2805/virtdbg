@@ -14,7 +14,7 @@ CFLAGS 		:= -Wall -Werror -Wno-unused-label
 CFLAGS 		+= -mno-sse -mno-sse2 -mno-mmx -mno-80387 -m64
 CFLAGS 		+= -mno-red-zone -fno-builtin -march=nehalem
 CFLAGS 		+= -ffreestanding -fno-asynchronous-unwind-tables
-CFLAGS 		+= -O2 -flto -ffat-lto-objects -g
+CFLAGS 		+= -Os -flto -ffat-lto-objects -g
 CFLAGS 		+= -fpic -fpie -Tvirtdbg/linker.ld
 CFLAGS 		+= -Ivirtdbg
 

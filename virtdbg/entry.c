@@ -5,6 +5,7 @@
 #include <mm/pmm.h>
 #include <vmx/ept.h>
 #include <arch/gdt.h>
+#include <arch/idt.h>
 #include "virtdbg.h"
 #include "elf.h"
 
@@ -55,6 +56,7 @@ void _start(virtdbg_args_t* args) {
     // do initial setup of the hypervisor environment
     //
     init_gdt();
+    init_idt();
     init_pmm(args->virtdbg_end, args->stolen_memory_end - args->virtdbg_end);
 
     //

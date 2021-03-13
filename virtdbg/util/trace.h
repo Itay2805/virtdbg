@@ -1,6 +1,7 @@
 #ifndef __VIRTDBG_TRACE_H__
 #define __VIRTDBG_TRACE_H__
 
+#include <sync/lock.h>
 #include <stddef.h>
 #include <stdarg.h>
 
@@ -56,9 +57,47 @@ size_t kprintf(const char* fmt, ...);
 // Tracing utils
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define DEBUG(fmt, ...)    kprintf("[?] " fmt "\n", ## __VA_ARGS__)
-#define TRACE(fmt, ...)    kprintf("[*] " fmt "\n", ## __VA_ARGS__)
-#define WARN(fmt, ...)     kprintf("[!] " fmt "\n", ## __VA_ARGS__)
-#define ERROR(fmt, ...)    kprintf("[-] " fmt "\n", ## __VA_ARGS__)
+//----------------------------------------------------------------------------------------------------------------------
+// These versions don't do any locks, and may cause output to be overlapped
+//----------------------------------------------------------------------------------------------------------------------
+
+#define UNLOCKED_DEBUG(fmt, ...)    kprintf("[?] " fmt "\n", ## __VA_ARGS__)
+#define UNLOCKED_TRACE(fmt, ...)    kprintf("[*] " fmt "\n", ## __VA_ARGS__)
+#define UNLOCKED_WARN(fmt, ...)     kprintf("[!] " fmt "\n", ## __VA_ARGS__)
+#define UNLOCKED_ERROR(fmt, ...)    kprintf("[-] " fmt "\n", ## __VA_ARGS__)
+
+//----------------------------------------------------------------------------------------------------------------------
+// These versions use a lock, and make sure nothing will get overlapped
+//----------------------------------------------------------------------------------------------------------------------
+
+extern lock_t g_trace_lock;
+
+#define DEBUG(...) \
+    do { \
+        lock(&g_trace_lock); \
+        UNLOCKED_DEBUG(__VA_ARGS__); \
+        unlock(&g_trace_lock); \
+    } while(0)
+
+#define TRACE(...) \
+    do { \
+        lock(&g_trace_lock); \
+        UNLOCKED_TRACE(__VA_ARGS__); \
+        unlock(&g_trace_lock); \
+    } while(0)
+
+#define WARN(...) \
+    do { \
+        lock(&g_trace_lock); \
+        UNLOCKED_WARN(__VA_ARGS__); \
+        unlock(&g_trace_lock); \
+    } while(0)
+
+#define ERROR(...) \
+    do { \
+        lock(&g_trace_lock); \
+        UNLOCKED_ERROR(__VA_ARGS__); \
+        unlock(&g_trace_lock); \
+    } while(0)
 
 #endif //__VIRTDBG_TRACE_H__
