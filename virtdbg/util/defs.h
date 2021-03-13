@@ -8,4 +8,6 @@
 
 #define LOG2(x) ((unsigned) (64ull - __builtin_clzll(x) - 1ull))
 
+#define ALIGN_UP(num, align) (((num) + ((align) - 1)) & ~((align) - 1))
+
 #endif //__VIRTDBG_DEFS_H__

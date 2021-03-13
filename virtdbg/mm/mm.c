@@ -60,7 +60,7 @@ static void buddy_add_free_item(void* address, size_t order, bool new) {
 }
 
 void init_pmm(uintptr_t base, size_t size) {
-    m_base = (void*)base;
+    m_base = (void*)ALIGN_UP(base, 4096);
 
     // as long as the chunk is big enough to fit
     while (size > (1ull << MIN_ORDER)) {
