@@ -19,6 +19,10 @@ SECTIONS {
     .dynamic : {
         _DYNAMIC = .;
         *(.dynamic)
+
+        /* just in case there is no dynamic section add a dummy dynamic entry */
+        QUAD(0x0)
+        QUAD(0x0)
     }
 
     . = ALIGN(4096);
