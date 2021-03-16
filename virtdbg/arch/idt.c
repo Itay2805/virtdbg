@@ -1,3 +1,4 @@
+#include <virtdbg.h>
 #include <util/list.h>
 #include <util/defs.h>
 #include "gdt.h"
@@ -557,9 +558,9 @@ static idt_entry_t m_idt_entries[0xFF + 1];
 /**
  * The idt
  */
-idt_t g_idt = {
-    .limit = sizeof(m_idt_entries) - 1,
-    .base = m_idt_entries
+descriptor_t g_idt = {
+    .size = sizeof(m_idt_entries) - 1,
+    .address = (uint64_t)m_idt_entries
 };
 
 static void set_idt_entry(uint8_t i, void(*handler)()) {

@@ -12,4 +12,8 @@ void pfree(void* ptr, size_t size);
 
 void* pallocz(size_t size);
 
+void* pallocz_aligned(size_t size, size_t align);
+
+void* palloc_aligned(size_t size, size_t align);
+
 #endif //__VIRTDBG_MM_H__

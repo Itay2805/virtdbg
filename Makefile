@@ -5,27 +5,29 @@
 #
 # The cross compiler to use
 #
-TOOLCHAIN ?=
+TOOLCHAIN ?= toolchain/bin/x86_64-linux-
 
 ########################################################################################################################
 # Build constants
 ########################################################################################################################
 
-CC 			:= $(TOOLCHAIN)gcc
-LD			:= $(TOOLCHAIN)gcc
+CC 		        	:= $(TOOLCHAIN)gcc
+OBJCOPY 			:= $(TOOLCHAIN)objcopy
+LD	        		:= $(TOOLCHAIN)gcc
 
 CFLAGS 		:= -Wall -Werror -Wno-unused-label
 CFLAGS 		+= -mno-sse -mno-sse2 -mno-mmx -mno-80387 -m64
 CFLAGS 		+= -mno-red-zone -fno-builtin -march=nehalem
 CFLAGS 		+= -ffreestanding -fno-asynchronous-unwind-tables
 CFLAGS 		+= -Os -flto -ffat-lto-objects -g
-CFLAGS 		+= -fPIC -fpie -mcmodel=large
-CFLAGS 		+= -Ivirtdbg -shared -Wl,--omagic
+CFLAGS 		+= -mcmodel=kernel
+CFLAGS 		+= -Ivirtdbg -Wl,--omagic
 
 CFLAGS 		+= -nostdlib -nodefaultlibs -nostartfiles
 CFLAGS 		+= -z max-page-size=0x1000
 
 SRCS		:= $(shell find virtdbg -name '*.c')
+SRCS		+= $(shell find virtdbg -name '*.asm')
 
 OUT_DIR 	:= out
 
@@ -40,7 +42,7 @@ BUILD_DIR := $(OUT_DIR)/build
 
 default: all
 
-all: $(BIN_DIR)/virtdbg.elf
+all: $(BIN_DIR)/virtdbg.bin
 
 ########################################################################################################################
 # Targets
@@ -51,10 +53,18 @@ DEPS := $(OBJS:%.o=%.d)
 BINS ?=
 -include $(DEPS)
 
-$(BIN_DIR)/virtdbg.elf: $(BINS) $(OBJS)
+$(BUILD_DIR)/virtdbg.elf: $(BINS) $(OBJS)
 	@echo LD $@
 	@mkdir -p $(@D)
 	@$(LD) $(CFLAGS) -o $@ $(OBJS)
+
+$(BIN_DIR)/virtdbg.bin: $(BUILD_DIR)/virtdbg.elf
+	@echo OBJCOPY $@
+	@mkdir -p $(@D)
+	@$(OBJCOPY) -O binary -S \
+		-j .text -j .data -j .bss -j .rodata\
+		--set-section-flags .bss=alloc,load,contents\
+		$^ $@
 
 $(BUILD_DIR)/%.c.o: %.c
 	@echo CC $@
@@ -76,22 +86,10 @@ clean:
 QEMU_ARGS += -m 4G -smp 4
 QEMU_ARGS += -machine q35
 QEMU_ARGS += -serial stdio
-QEMU_ARGS += -monitor tcp:localhost:1337,nowait
 QEMU_ARGS += --no-shutdown
 QEMU_ARGS += --no-reboot
-QEMU_ARGS += -cpu Nehalem
-
-ifeq ($(shell uname -r | sed -n 's/.*\( *Microsoft *\).*/\1/p'), Microsoft)
-	QEMU := qemu-system-x86_64.exe
-	ifeq ($(QEMU_ACCEL), 1)
-		QEMU_ARGS += --accel whpx
-	endif
-else
-	QEMU := qemu-system-x86_64
-	ifeq ($(QEMU_ACCEL), 1)
-		QEMU_ARGS += --enable-kvm
-	endif
-endif
+QEMU_ARGS += -cpu host --enable-kvm
+QEMU := qemu-system-x86_64
 
 #
 # A target to start the kernel in qemu
