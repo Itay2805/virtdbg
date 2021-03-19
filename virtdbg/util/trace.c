@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <drivers/serial.h>
 
 #include "trace.h"
 #include "except.h"
@@ -300,18 +301,6 @@ size_t ksnprintf(char* buffer, size_t size, const char* fmt, ...) {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-
-#define SERIAL_BASE 0x3F8
-#define LSR         (SERIAL_BASE + 0x05)
-#define TXRDY       0x20
-
-static void serial_output_cb(char c, void* ctx) {
-    uint8_t data;
-    do {
-        data = io_read_8(LSR);
-    } while(!(data & TXRDY));
-    io_write_8(SERIAL_BASE, c);
-}
 
 size_t kprintf(const char* fmt, ...) {
     va_list ap;

@@ -5,6 +5,7 @@
 
 #include <util/except.h>
 #include <util/list.h>
+#include <virtdbg.h>
 
 #include "intrin.h"
 
@@ -27,12 +28,7 @@ typedef struct idt_entry {
     uint64_t _zero3 : 32;
 } __attribute__((packed)) idt_entry_t;
 
-typedef struct idt {
-    uint16_t limit;
-    idt_entry_t* base;
-} __attribute__((packed)) idt_t;
-
-extern idt_t g_idt;
+extern descriptor_t g_idt;
 
 typedef struct exception_context {
     uint64_t ds;
@@ -76,5 +72,4 @@ typedef struct interrupt_handler {
 } interrupt_handler_t;
 
 void hook_interrupt_handler(interrupt_handler_t* handler, int vector);
-
-#endif //__VIRTDBG_IDT_H__
+#endif

@@ -24,12 +24,22 @@ static gdt_entries_t m_entries = {
         .access         = 0b10010010,
         .granularity    = 0b00000000,
         .base_high      = 0x00
+    },
+    {
+        .length         = 104,
+        .base_low16     = 0,
+        .base_mid8      = 0,
+        .flags1         = 0b10001001,
+        .flags2         = 0,
+        .base_high8     = 0,
+        .base_upper32   = 0,
+        .reserved       = 0
     }
 };
 
-gdt_t g_gdt = {
+descriptor_t g_gdt = {
     .size = sizeof(gdt_entries_t) - 1,
-    .entries = &m_entries
+    .address = (uint64_t)&m_entries
 };
 
 void init_gdt() {

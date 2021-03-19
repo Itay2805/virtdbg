@@ -23,13 +23,45 @@ static void* m_base = NULL;
 /**
  * The free list of free blocks
  */
-static void* m_free_list[MAX_ORDER - MIN_ORDER] = { 0 };
+//static void* m_free_list[MAX_ORDER - MIN_ORDER] = { 0 };
 
 /**
  * The PMM lock, to protect against multi-core allocations
  */
 static lock_t m_pmm_lock = INIT_IRQ_LOCK();
 
+void init_pmm(uintptr_t base, size_t size) {
+    // align everything nicely
+    uintptr_t aligned_base = ALIGN_UP(base, 4096);
+    m_base = (void*)aligned_base;
+} 
+
+void* palloc_aligned(size_t size, size_t align) {
+    lock(&m_pmm_lock);
+    m_base = (void*)ALIGN_UP((size_t)m_base, align);
+    void* res = m_base;
+    m_base += size;
+    unlock(&m_pmm_lock);
+    return res;
+}
+
+void* palloc(size_t size) {
+    return palloc_aligned(size, 1);
+}
+
+void* pallocz(size_t size) {
+    void* ptr = palloc(size);
+    memset(ptr, 0, size);
+    return ptr;
+}
+
+void* pallocz_aligned(size_t size, size_t align) {
+    void* ptr = palloc_aligned(size, align);
+    memset(ptr, 0, size);
+    return ptr;
+}
+
+/*
 static bool check_buddies(void* a, void* b, size_t size) {
     uintptr_t lower = MIN(a, b) - m_base;
     uintptr_t upper = MAX(a, b) - m_base;
@@ -97,6 +129,7 @@ void init_pmm(uintptr_t base, size_t size) {
 }
 
 void* palloc(size_t size) {
+    TRACE("ALLOC %x", size);
     lock(&m_pmm_lock);
 
     int original_order = MAX(LOG2(size), MIN_ORDER);
@@ -110,6 +143,7 @@ void* palloc(size_t size) {
 
     // find the smallest order with space
     for (int order = original_order; order < MAX_ORDER; order++) {
+        TRACE("ORDER %x", order);
         if (m_free_list[order - MIN_ORDER] != 0) {
             // pop the head
             void* address = m_free_list[order - MIN_ORDER];
@@ -127,7 +161,7 @@ void* palloc(size_t size) {
             return address;
         }
     }
-
+    
     unlock(&m_pmm_lock);
     return NULL;
 }
@@ -146,4 +180,4 @@ void* pallocz(size_t size) {
     void* ptr = palloc(size);
     memset(ptr, 0, size);
     return ptr;
-}
+}*/
