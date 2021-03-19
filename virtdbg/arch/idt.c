@@ -836,5 +836,5 @@ void init_idt() {
     set_idt_entry(0xfe, interrupt_handle_0xfe);
     set_idt_entry(0xff, interrupt_handle_0xff);
 
-    asm volatile ("lidt %0" : : "m" (g_idt));
+    asm volatile ("lidt %0" : : "m"(g_idt));
 }

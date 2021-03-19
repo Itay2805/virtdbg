@@ -2,21 +2,25 @@
 # Build config
 ########################################################################################################################
 
+#
+# The cross compiler to use
+#
+TOOLCHAIN ?=
+
 ########################################################################################################################
 # Build constants
 ########################################################################################################################
 
-CC 			:= cc
-LD			:= cc
-OBJCOPY		:= objcopy
+CC 			:= $(TOOLCHAIN)gcc
+LD			:= $(TOOLCHAIN)gcc
 
 CFLAGS 		:= -Wall -Werror -Wno-unused-label
 CFLAGS 		+= -mno-sse -mno-sse2 -mno-mmx -mno-80387 -m64
 CFLAGS 		+= -mno-red-zone -fno-builtin -march=nehalem
 CFLAGS 		+= -ffreestanding -fno-asynchronous-unwind-tables
 CFLAGS 		+= -Os -flto -ffat-lto-objects -g
-CFLAGS 		+= -fpic -fpie -Tvirtdbg/linker.ld
-CFLAGS 		+= -Ivirtdbg
+CFLAGS 		+= -fPIC -fpie -mcmodel=large
+CFLAGS 		+= -Ivirtdbg -shared -Wl,--omagic
 
 CFLAGS 		+= -nostdlib -nodefaultlibs -nostartfiles
 CFLAGS 		+= -z max-page-size=0x1000
@@ -36,7 +40,7 @@ BUILD_DIR := $(OUT_DIR)/build
 
 default: all
 
-all: $(BIN_DIR)/virtdbg.bin
+all: $(BIN_DIR)/virtdbg.elf
 
 ########################################################################################################################
 # Targets
@@ -47,16 +51,7 @@ DEPS := $(OBJS:%.o=%.d)
 BINS ?=
 -include $(DEPS)
 
-$(BIN_DIR)/virtdbg.bin: $(BUILD_DIR)/virtdbg.elf
-	@echo OBJCOPY $@
-	@mkdir -p $(@D)
-	@$(OBJCOPY) -O binary -S \
-		-j .init -j .text -j .data -j .bss  \
-		-j .dynamic -j .rela* \
-		--set-section-flags .bss=alloc,load,contents \
-		$^ $@
-
-$(BUILD_DIR)/virtdbg.elf: $(BINS) $(OBJS)
+$(BIN_DIR)/virtdbg.elf: $(BINS) $(OBJS)
 	@echo LD $@
 	@mkdir -p $(@D)
 	@$(LD) $(CFLAGS) -o $@ $(OBJS)
@@ -125,7 +120,7 @@ $(BIN_DIR)/image.hdd: \
 	parted -s $@ mkpart primary 1 100%
 	echfs-utils -m -p0 $@ quick-format 32768
 	@echo "Importing files"
-	echfs-utils -m -p0 $@ import $(BIN_DIR)/virtdbg.bin virtdbg.bin
+	echfs-utils -m -p0 $@ import $(BIN_DIR)/virtdbg.elf virtdbg.elf
 	echfs-utils -m -p0 $@ import artifacts/lyre.elf lyre.elf
 	echfs-utils -m -p0 $@ import artifacts/limine.cfg limine.cfg
 	@echo "Installing limine"
