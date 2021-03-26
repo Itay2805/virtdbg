@@ -11,15 +11,15 @@
 #include "virtdbg.h"
 #include <arch/io.h>
 
-//__attribute__((section(".init"), used))
+__attribute__((section(".init"), used))
 void _start(virtdbg_args_t* args) {
     err_t err = NO_ERROR;
 
-   serial_init();
+    serial_init();
     TRACE("staring up virtdbg");
 
     // we ready to roll!
-    TRACE("\tStolen memory: 0x%p-0x%p", args->stolen_memory_base, args->stolen_memory_end);
+    TRACE("\tStolen memory: 0x%p-0x%p, base: %p", args->stolen_memory_base, args->stolen_memory_end, args->virtdbg_end);
 
     CHECK(args->virtdbg_end > args->stolen_memory_base, "Inavlid virtdbg_end");
     CHECK(args->stolen_memory_end > args->virtdbg_end, "Inavlid stolen_memory_end");
@@ -29,12 +29,16 @@ void _start(virtdbg_args_t* args) {
     //
     init_gdt();
     init_idt();
+    TRACE("staring up virtdbg");
+ 
     init_pmm(args->virtdbg_end, args->stolen_memory_end - args->virtdbg_end);
 
     //
     // Do the hypervisor setup
     //
     CHECK_AND_RETHROW(init_ept());
+
+    TRACE("ept initialized");
 
     CHECK_AND_RETHROW(vmxon());
 

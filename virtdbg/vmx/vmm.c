@@ -16,6 +16,7 @@ extern ept_entry_t* g_root_pa;
 err_t vmxon() {
     err_t err = NO_ERROR;
     uint32_t* vmxon_region = pallocz_aligned(0x1000, 0x1000);
+    TRACE("vmxon region: %x", vmxon_region);
 
     ia32_feature_control_t control = (ia32_feature_control_t)__rdmsr(MSR_CODE_IA32_FEATURE_CONTROL);
     if(!control.LockBit) {
@@ -42,18 +43,11 @@ err_t vmxon() {
     __writecr4(cr4);
 
     //Set vmx revision
-    uint32_t vmx_revision = __rdmsr(IA32_VMX_BASIC_MSR);
+    uint32_t vmx_revision = __rdmsr(IA32_VMX_BASIC_MSR) & 0x7FFFFFFF;
     *vmxon_region = vmx_revision;
     uint16_t successful = 0;
-    asm volatile(
-        "vmxon %1;"
-        "movq $0, %%rdx;"
-        "success:"
-        "movq $1, %%rdx;"
-        :"=d"(successful)
-        :"m"(vmxon_region)
-        :"memory", "cc"
-    );
+
+    asm volatile("vmxon %[Region]" : "=@ccnc"(successful) : [Region]"m"(vmxon_region) : "memory");
 
     CHECK_ERROR(successful, ERROR_UNSUPPORTED, "VMX not supported");
 
@@ -103,7 +97,7 @@ err_t init_vmcs(vmcs_t* vmcs, initial_guest_state_t* state) {
     vmcs->region = (uintptr_t)pallocz_aligned(0x1000, 0x1000);
 
     //set the vmx revision for some reason
-    uint32_t vmx_revision = __rdmsr(IA32_VMX_BASIC_MSR);
+    uint32_t vmx_revision = __rdmsr(IA32_VMX_BASIC_MSR) & 0x7FFFFFFF;
     *(uint32_t*)(vmcs->region) = vmx_revision;
 
     vmptrld(vmcs->region);
@@ -224,7 +218,6 @@ err_t init_vmcs(vmcs_t* vmcs, initial_guest_state_t* state) {
     uint32_t cr0FixedLo = (uint32_t)cr0FixedGuest;
     uint32_t cr0FixedHi = (uint32_t)(cr0FixedGuest >> 32);
     vmwrite(GUEST_CR0, cr0FixedLo | ((uint64_t)cr0FixedHi) << 32 | state->cr0);
-    TRACE("cr3: %X", state->cr3);
     vmwrite(GUEST_CR3, state->cr3);
     uint64_t cr4FixedGuest = __rdmsr(IA32_VMX_CR4_FIXED0_MSR);
     uint32_t cr4FixedLo = (uint32_t)cr4FixedGuest;

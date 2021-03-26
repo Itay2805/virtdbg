@@ -1,24 +1,28 @@
-ENTRY(main)
+ENTRY(_start)
 
 BASE = 0xffffffff80000000;
 
 SECTIONS {
     . = BASE;
 
+    .init :  {
+        *(.init*)
+    }
+
     /* Actual kernel. */
-    .text : AT(ADDR(.text) - BASE) {
+    .text :  {
         *(.text*)
     }
 
-    .rodata : AT(ADDR(.rodata) - BASE) {
+    .rodata :  {
         *(.rodata*)
     }
 
-    .data :  AT(ADDR(.data) - BASE) {
+    .data :   {
         *(.data*)
     }
 
-    .bss : AT(ADDR(.bss) - BASE) {
+    .bss :  {
         *(.bss*)
         *(COMMON)
         . = ALIGN(4K);

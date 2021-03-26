@@ -107,6 +107,7 @@ typedef union ia32_feature_control {
 } ia32_feature_control_t;
 
 ia32_cr4_t __readcr4(void);
+uint64_t __readcr2(void);
 uint64_t __readcr3(void);
 ia32_cr0_t __readcr0(void);
 void __writecr0(ia32_cr0_t data);
