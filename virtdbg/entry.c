@@ -10,6 +10,7 @@
 #include <mm/pmm.h>
 #include "virtdbg.h"
 #include <arch/io.h>
+#include <gdb/gdb.h>
 
 //__attribute__((section(".init"), used))
 void _start(virtdbg_args_t* args) {
@@ -30,6 +31,11 @@ void _start(virtdbg_args_t* args) {
     init_gdt();
     init_idt();
     init_pmm(args->virtdbg_end, args->stolen_memory_end - args->virtdbg_end);
+
+    //
+    // register the gdb stub
+    //
+    init_kernel_gdb();
 
     //
     // Do the hypervisor setup

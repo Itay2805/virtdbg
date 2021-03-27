@@ -39,6 +39,11 @@ typedef enum err {
      * Hardware support for some feature wasn't found
      */
     ERROR_UNSUPPORTED,
+
+    /**
+     * Got a too small buffer
+     */
+    ERROR_BUFFER_TOO_SMALL,
 } err_t;
 
 /**

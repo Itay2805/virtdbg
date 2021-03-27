@@ -63,6 +63,24 @@ typedef struct exception_handler {
     err_t (*handle)(exception_context_t* ctx, bool* handled);
 } exception_handler_t;
 
+#define EXCEPT_DIVIDE_ERROR    0
+#define EXCEPT_DEBUG           1
+#define EXCEPT_NMI             2
+#define EXCEPT_BREAKPOINT      3
+#define EXCEPT_OVERFLOW        4
+#define EXCEPT_BOUND           5
+#define EXCEPT_INVALID_OPCODE  6
+#define EXCEPT_DOUBLE_FAULT    8
+#define EXCEPT_INVALID_TSS     10
+#define EXCEPT_SEG_NOT_PRESENT 11
+#define EXCEPT_STACK_FAULT     12
+#define EXCEPT_GP_FAULT        13
+#define EXCEPT_PAGE_FAULT      14
+#define EXCEPT_FP_ERROR        16
+#define EXCEPT_ALIGNMENT_CHECK 17
+#define EXCEPT_MACHINE_CHECK   18
+#define EXCEPT_SIMD            19
+
 void hook_exception_handler(exception_handler_t* handler);
 
 typedef struct interrupt_handler {
