@@ -259,7 +259,7 @@ static void kernel_exception_handler(exception_context_t* ctx) {
     UNLOCKED_ERROR("RSI=%016p  RDI=%016p RBP=%016p RSP=%016p", ctx->rsi, ctx->rdi, ctx->rbp, ctx->rsp);
     UNLOCKED_ERROR("R8 =%016p  R9 =%016p R10=%016p R11=%016p", ctx->r8 , ctx->r9 , ctx->r10, ctx->r11);
     UNLOCKED_ERROR("R12=%016p  R13=%016p R14=%016p R15=%016p", ctx->r12, ctx->r13, ctx->r14, ctx->r15);
-    UNLOCKED_ERROR("RIP=%016p RFL=%b", ctx->rip, ctx->rflags.raw);
+    UNLOCKED_ERROR("RIP=%016p RFL=%b CR2: %p", ctx->rip, ctx->rflags.raw, __readcr2());
 
     // stop
     UNLOCKED_ERROR("Halting :(");

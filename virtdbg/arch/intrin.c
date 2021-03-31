@@ -25,6 +25,14 @@ ia32_cr4_t __readcr4(void) {
     return (ia32_cr4_t) { .raw = value };
 }
 
+uint64_t __readcr2(void) {
+    uint64_t value;
+    __asm__ __volatile__ (
+    "mov %%cr2, %[value]"
+    : [value] "=q" (value));
+    return value;
+}
+
 uint64_t __readcr3(void) {
     uint64_t value;
     __asm__ __volatile__ (

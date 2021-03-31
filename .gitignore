@@ -5,3 +5,5 @@ cmake-build-debug
 
 # Everything in the toolchain dir
 toolchain/*
+*.elf
+*.o
