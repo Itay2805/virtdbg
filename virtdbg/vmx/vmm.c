@@ -125,87 +125,32 @@ err_t init_vmcs(vmcs_t* vmcs, initial_guest_state_t* state) {
     // Setup the pin based controls, these are
     // mostly interrupt controls
     //
-    {
-        uint64_t allowed_pinbased_ctls = __rdmsr(MSR_IA32_VMX_PINBASED_CTLS);
-        vmx_pinbased_ctls_t pinbased_ctls = { .raw = (allowed_pinbased_ctls & 0xFFFFFFFF) & (allowed_pinbased_ctls >> 32) };
-        TRACE("default pinbased_ctls:");
-        if (pinbased_ctls.external_int_exit) TRACE("\texternal_int_exit");
-        if (pinbased_ctls.nmi_exit) TRACE("\tnmi_exit");
-        if (pinbased_ctls.virt_nmi_exit) TRACE("\tvirt_nmi_exit");
-        if (pinbased_ctls.preemption_timer) TRACE("\tpreemption_timer");
-        if (pinbased_ctls.process_apic_ints) TRACE("\tprocess_apic_ints");
-        CHECK_AND_RETHROW(validate_controls(pinbased_ctls.raw, allowed_pinbased_ctls));
-        vmwrite(VMCS_FIELD_PINBASED_CTLS, pinbased_ctls.raw);
-    }
+    uint64_t allowed_pinbased_ctls = __rdmsr(MSR_IA32_VMX_PINBASED_CTLS);
+    vmx_pinbased_ctls_t pinbased_ctls = { .raw = (allowed_pinbased_ctls & 0xFFFFFFFF) & (allowed_pinbased_ctls >> 32) };
+    CHECK_AND_RETHROW(validate_controls(pinbased_ctls.raw, allowed_pinbased_ctls));
+    vmwrite(VMCS_FIELD_PINBASED_CTLS, pinbased_ctls.raw);
 
     //
     // Setup the proc based controls, these are mostly exit reasons
     // do to certain instructions being executed and other configurations
     // of vmx (like enabling ept)
     //
-    {
-        uint64_t allowed_procbased_ctls = __rdmsr(MSR_IA32_VMX_PROCBASED_CTLS);
-        vmx_procbased_ctls_t procbased_ctls = { .raw = (allowed_procbased_ctls & 0xFFFFFFFF) & (allowed_procbased_ctls >> 32) };
-        TRACE("default procbased_ctls:");
-        if (procbased_ctls.int_window_exit) TRACE("\tint_window_exit");
-        if (procbased_ctls.use_tsc_offseting) TRACE("\tuse_tsc_offseting");
-        if (procbased_ctls.hlt_exit) TRACE("\thlt_exit");
-        if (procbased_ctls.invlpg_exit) TRACE("\tinvlpg_exit");
-        if (procbased_ctls.mwait_exit) TRACE("\tmwait_exit");
-        if (procbased_ctls.rdpmc_exit) TRACE("\trdpmc_exit");
-        if (procbased_ctls.rdtsc_exit) TRACE("\trdtsc_exit");
-        if (procbased_ctls.cr3_load_exit) TRACE("\tcr3_load_exit");
-        if (procbased_ctls.cr3_store_exit) TRACE("\tcr3_store_exit");
-        if (procbased_ctls.cr8_load_exit) TRACE("\tcr8_load_exit");
-        if (procbased_ctls.cr8_store_exit) TRACE("\tcr8_store_exit");
-        if (procbased_ctls.use_tpr_shadow) TRACE("\tuse_tpr_shadow");
-        if (procbased_ctls.nmi_window_exit) TRACE("\tnmi_window_exit");
-        if (procbased_ctls.mov_dr_exit) TRACE("\tmov_dr_exit");
-        if (procbased_ctls.uncond_io_exit) TRACE("\tuncond_io_exit");
-        if (procbased_ctls.use_io_bitmaps) TRACE("\tuse_io_bitmaps");
-        if (procbased_ctls.monitor_trap_flag) TRACE("\tmonitor_trap_flag");
-        if (procbased_ctls.use_msr_bitmaps) TRACE("\tuse_msr_bitmaps");
-        if (procbased_ctls.monitor_exit) TRACE("\tmonitor_exit");
-        if (procbased_ctls.pause_exit) TRACE("\tpause_exit");
-        if (procbased_ctls.use_procased2) TRACE("\tuse_procased2");
-        procbased_ctls.use_procased2 = 1;
-        CHECK_AND_RETHROW(validate_controls(procbased_ctls.raw, allowed_procbased_ctls));
-        vmwrite(VMCS_FIELD_PROCBASED_CTLS, procbased_ctls.raw);
-    }
+    uint64_t allowed_procbased_ctls = __rdmsr(MSR_IA32_VMX_PROCBASED_CTLS);
+    vmx_procbased_ctls_t procbased_ctls = { .raw = (allowed_procbased_ctls & 0xFFFFFFFF) & (allowed_procbased_ctls >> 32) };
+    procbased_ctls.use_procased2 = 1;
+    CHECK_AND_RETHROW(validate_controls(procbased_ctls.raw, allowed_procbased_ctls));
+    vmwrite(VMCS_FIELD_PROCBASED_CTLS, procbased_ctls.raw);
 
     //
     // from this we only really need to enable EPT so we can map stuff on demand (saves space)
     // and so we can have unrestricted guest, so the kernel can do whatever it wants
     //
-    {
-        uint64_t allowed_procbased_ctls2 = __rdmsr(MSR_IA32_VMX_PROCBASED_CTLS2);
-        vmx_procbased_ctls2_t procbased_ctls2 = { .raw = (allowed_procbased_ctls2 & 0xFFFFFFFF) & (allowed_procbased_ctls2 >> 32) };
-        TRACE("default procbased_ctls2:");
-        if (procbased_ctls2.virt_apic_access) TRACE("\tvirt_apic_access");
-        if (procbased_ctls2.enable_ept) TRACE("\tenable_ept");
-        if (procbased_ctls2.descriptor_table_exit) TRACE("\tdescriptor_table_exit");
-        if (procbased_ctls2.enable_rdtscp) TRACE("\tenable_rdtscp");
-        if (procbased_ctls2.virt_x2apic_access) TRACE("\tvirt_x2apic_access");
-        if (procbased_ctls2.enable_vpid) TRACE("\tenable_vpid");
-        if (procbased_ctls2.wbinvd_exit) TRACE("\twbinvd_exit");
-        if (procbased_ctls2.unrestricted_guest) TRACE("\tunrestricted_guest");
-        if (procbased_ctls2.apic_register) TRACE("\tapic_register");
-        if (procbased_ctls2.virt_int_exit) TRACE("\tvirt_int_exit");
-        if (procbased_ctls2.pause_loop_exit) TRACE("\tpause_loop_exit");
-        if (procbased_ctls2.rdrand_exit) TRACE("\trdrand_exit");
-        if (procbased_ctls2.invpcid_exit) TRACE("\tinvpcid_exit");
-        if (procbased_ctls2.enable_vm_func) TRACE("\tenable_vm_func");
-        if (procbased_ctls2.enable_shadow_vmcs) TRACE("\tenable_shadow_vmcs");
-        if (procbased_ctls2.rdseed_exit) TRACE("\trdseed_exit");
-        if (procbased_ctls2.enable_pml) TRACE("\tenable_pml");
-        if (procbased_ctls2.enable_ept_ve) TRACE("\tenable_ept_ve");
-        if (procbased_ctls2.xsave_xrstor_exit) TRACE("\txsave_xrstor_exit");
-        if (procbased_ctls2.tsc_scaling) TRACE("\ttsc_scaling");
-        procbased_ctls2.enable_ept = 1;
-        procbased_ctls2.unrestricted_guest = 1;
-        CHECK_AND_RETHROW(validate_controls(procbased_ctls2.raw, allowed_procbased_ctls2));
-        vmwrite(VMCS_FIELD_PROCBASED_CTLS2, procbased_ctls2.raw);
-    }
+    uint64_t allowed_procbased_ctls2 = __rdmsr(MSR_IA32_VMX_PROCBASED_CTLS2);
+    vmx_procbased_ctls2_t procbased_ctls2 = { .raw = (allowed_procbased_ctls2 & 0xFFFFFFFF) & (allowed_procbased_ctls2 >> 32) };
+    procbased_ctls2.enable_ept = 1;
+    procbased_ctls2.unrestricted_guest = 1;
+    CHECK_AND_RETHROW(validate_controls(procbased_ctls2.raw, allowed_procbased_ctls2));
+    vmwrite(VMCS_FIELD_PROCBASED_CTLS2, procbased_ctls2.raw);
 
     //
     // we don't want to exit on any exception
@@ -215,45 +160,23 @@ err_t init_vmcs(vmcs_t* vmcs, initial_guest_state_t* state) {
     //
     // Setup the vmexit controls, just tell it we are a 64bit host
     //
-    {
-        uint64_t allowed_exit_ctls = __rdmsr(MSR_IA32_VMX_EXIT_CTLS);
-        vmx_exit_ctls_t exit_ctls = { .raw = (allowed_exit_ctls & 0xFFFFFFFF) & (allowed_exit_ctls >> 32) };
-        TRACE("default exit_ctls:");
-        if (exit_ctls.save_debug_controls) TRACE("\tsave_debug_controls");
-        if (exit_ctls.is_host_64bit) TRACE("\tis_host_64bit");
-        if (exit_ctls.load_ia32_perf_global_ctrl) TRACE("\tload_ia32_perf_global_ctrl");
-        if (exit_ctls.ack_int_on_exit) TRACE("\tack_int_on_exit");
-        if (exit_ctls.save_ia32_pat) TRACE("\tsave_ia32_pat");
-        if (exit_ctls.load_ia32_pat) TRACE("\tload_ia32_pat");
-        if (exit_ctls.save_ia32_efer) TRACE("\tsave_ia32_efer");
-        if (exit_ctls.load_ia32_efer) TRACE("\tload_ia32_efer");
-        if (exit_ctls.save_preemption_timer) TRACE("\tsave_preemption_timer");
-        exit_ctls.is_host_64bit = 1;
-        exit_ctls.load_ia32_efer = 1;
-        CHECK_AND_RETHROW(validate_controls(exit_ctls.raw, allowed_exit_ctls));
-        vmwrite(VMCS_FIELD_VMEXIT_CTLS, exit_ctls.raw);
-    }
+    uint64_t allowed_exit_ctls = __rdmsr(MSR_IA32_VMX_EXIT_CTLS);
+    vmx_exit_ctls_t exit_ctls = { .raw = (allowed_exit_ctls & 0xFFFFFFFF) & (allowed_exit_ctls >> 32) };
+    exit_ctls.is_host_64bit = 1;
+    exit_ctls.load_ia32_efer = 1;
+    CHECK_AND_RETHROW(validate_controls(exit_ctls.raw, allowed_exit_ctls));
+    vmwrite(VMCS_FIELD_VMEXIT_CTLS, exit_ctls.raw);
 
     //
     // Setup the vmx entry controls, tell it we are
     //
-    {
-        msr_efer_t guest_efer = { .raw = state->efer };
-        uint64_t allowed_entry_ctls = __rdmsr(MSR_IA32_VMX_ENTRY_CTLS);
-        vmx_entry_ctls_t entry_ctls = { .raw = (allowed_entry_ctls & 0xFFFFFFFF) & (allowed_entry_ctls >> 32) };
-        TRACE("default entry_ctls:");
-        if (entry_ctls.load_debug_controls) TRACE("\tload_debug_controls");
-        if (entry_ctls.is_guest_64bit) TRACE("\tis_guest_64bit");
-        if (entry_ctls.enter_smm) TRACE("\tenter_smm");
-        if (entry_ctls.disable_dual_monitor) TRACE("\tdisable_dual_monitor");
-        if (entry_ctls.load_ia32_perf_global_ctrl) TRACE("\tload_ia32_perf_global_ctrl");
-        if (entry_ctls.load_ia32_pat) TRACE("\tload_ia32_pat");
-        if (entry_ctls.load_ia32_efer) TRACE("\tload_ia32_efer");
-        entry_ctls.is_guest_64bit = guest_efer.long_mode_active;
-        entry_ctls.load_ia32_efer = 1;
-        CHECK_AND_RETHROW(validate_controls(entry_ctls.raw, allowed_entry_ctls));
-        vmwrite(VMCS_FIELD_VMENTRY_CTLS, entry_ctls.raw);
-    }
+    msr_efer_t guest_efer = { .raw = state->efer };
+    uint64_t allowed_entry_ctls = __rdmsr(MSR_IA32_VMX_ENTRY_CTLS);
+    vmx_entry_ctls_t entry_ctls = { .raw = (allowed_entry_ctls & 0xFFFFFFFF) & (allowed_entry_ctls >> 32) };
+    entry_ctls.is_guest_64bit = guest_efer.long_mode_active;
+    entry_ctls.load_ia32_efer = 1;
+    CHECK_AND_RETHROW(validate_controls(entry_ctls.raw, allowed_entry_ctls));
+    vmwrite(VMCS_FIELD_VMENTRY_CTLS, entry_ctls.raw);
 
     //
     // Setup the EPT
@@ -338,6 +261,7 @@ err_t init_vmcs(vmcs_t* vmcs, initial_guest_state_t* state) {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // TODO: this
+    vmwrite(VMCS_FIELD_VMCS_LINK_POINTER_FULL, -1);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Set the host state
