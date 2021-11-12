@@ -47,12 +47,12 @@ typedef union {
         uint32_t  MCE:1;          ///< Machine Check Enable.
         uint32_t  PGE:1;          ///< Page Global Enable.
         uint32_t  PCE:1;          ///< Performance Monitoring Counter
-        ///< Enable.
+                                  ///< Enable.
         uint32_t  OSFXSR:1;       ///< Operating System Support for
-        ///< FXSAVE and FXRSTOR instructions
+                                  ///< FXSAVE and FXRSTOR instructions
         uint32_t  OSXMMEXCPT:1;   ///< Operating System Support for
-        ///< Unmasked SIMD Floating Point
-        ///< Exceptions.
+                                  ///< Unmasked SIMD Floating Point
+                                  ///< Exceptions.
         uint32_t  UMIP:1;         ///< User-Mode Instruction Prevention.
         uint32_t  LA57:1;         ///< Linear Address 57bit.
         uint32_t  VMXE:1;         ///< VMX Enable.

@@ -5,7 +5,7 @@
 #
 # The cross compiler to use
 #
-TOOLCHAIN ?= toolchain/bin/x86_64-linux-
+TOOLCHAIN ?= /home/tomato/toolchains/x86-64-core-i7--uclibc--stable-2020.08-1/bin/x86_64-buildroot-linux-uclibc-
 
 ########################################################################################################################
 # Build constants

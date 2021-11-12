@@ -32,6 +32,7 @@ typedef struct initial_guest_state {
     guest_state_t gprstate;
     uint64_t rip;
     uint64_t rsp;
+    uint64_t dr7;
     uint64_t rflags;
     uint64_t efer;
     uint64_t cr0;

@@ -28,6 +28,9 @@ typedef struct ept_entry {
     uint64_t suppress_ve : 1;
 } __attribute__((packed)) ept_entry_t;
 
+/**
+ * Init our global ept
+ */
 err_t init_ept();
 
 /**
